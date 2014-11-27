@@ -53,9 +53,9 @@ class WooClient(val secret:String,val key:String, val url:String) {
   JSON_MAPPER.registerModule(DefaultScalaModule)
 
   private val API_URL:String = "/wc-api/v2"
-  private val ENC:String = "HMAC-SHA256"
+  private val ENC:String = "HMAC-SHA1"
 
-  private val HASH_ALGORITHM:String = "HmacSHA256"
+  private val HASH_ALGORITHM:String = "HmacSHA1"
   
   private val uri = url + API_URL
   private val base64 = new Base64()
@@ -63,12 +63,13 @@ class WooClient(val secret:String,val key:String, val url:String) {
   val client = ClientBuilder.newClient()
   val webTarget = client.target(uri).path("/")
 
-  def getOrders() {
+  def getOrders():WooOrders = {
       
     try {
       
       var queryTarget = webTarget.path("orders")
       if (url.contains("https")) {
+        null
         
       } else {
 
@@ -79,27 +80,28 @@ class WooClient(val secret:String,val key:String, val url:String) {
          * ordering is also used when preparing the request url
          */
         params += Pair("oauth_consumer_key",key)
-        params += Pair("oauth_timestamp",time())
-          
         params += Pair("oauth_nonce",sha1(millis))
+
         params += Pair("oauth_signature_method",ENC)
+        params += Pair("oauth_timestamp",time())
 
         val signature = Pair("oauth_signature", generateOAuthSignature("orders","GET",params))
         
+        queryTarget = queryTarget.queryParam(signature.key,signature.value)
         for (param <- params) {
          queryTarget = queryTarget.queryParam(param.key,param.value)
         }
         
-        queryTarget = queryTarget.queryParam(signature.key,signature.value)
-        println("URI: " + queryTarget.getUri())
-        
         val response = queryTarget.request(MediaType.APPLICATION_JSON_TYPE).method("GET", null, classOf[String])
-
+        println(response)
         JSON_MAPPER.readValue(response, classOf[WooOrders])    
    }
     
     } catch {
-      case e:Exception => throw new Exception("Could not process query",e)
+      case e:Exception => {
+        println(e.getMessage())
+        throw new Exception("Could not process query",e)
+      }
     }
 
   }
@@ -116,14 +118,14 @@ class WooClient(val secret:String,val key:String, val url:String) {
       val k = URLEncoder.encode(param.key,"UTF-8").replace("%", "%25")
       val v = URLEncoder.encode(param.value,"UTF-8").replace("%", "%25")
       
-      "" + k  + "%3D" + v
-    
+      val text = "" + k  + "%3D" + v
+      queryParams += text
+      
     }
     
     val queryString = queryParams.mkString("%26")
     val baseURI = URLEncoder.encode(url + API_URL + "/" + endpoint, "UTF-8")
 
-    println("BASE URI: " + baseURI)
     getSignature(baseURI,method,queryString)
     
  }
@@ -144,15 +146,15 @@ class WooClient(val secret:String,val key:String, val url:String) {
 	sb.append("&")
 	sb.append(params)
 
-	val keyBytes = secret.getBytes()
+	val keyBytes = secret.getBytes("UTF-8")
 	val secretKey = new SecretKeySpec(keyBytes, HASH_ALGORITHM);
 
 	val mac = Mac.getInstance(HASH_ALGORITHM)
 	mac.init(secretKey)
 
-	val signature = new String(base64.encode(mac.doFinal(sb.toString().getBytes("UTF-8"))), "UTF-8").trim()
+	val signature = new String(Base64.encodeBase64(mac.doFinal(sb.toString().getBytes("UTF-8"))))
     signature
-      
+
   }
 	
   private def sha1(password:String):String = {
