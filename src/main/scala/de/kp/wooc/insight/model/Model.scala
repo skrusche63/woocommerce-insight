@@ -158,14 +158,7 @@ object Elements {
   
 }
 
-object Messages {
-
-  def TASK_IS_UNKNOWN(uid:String,task:String):String = 
-    String.format("""[UID: %s] The task '%s' is unknown.""", uid, task)
-
-    def TRACKING_DATA_RECEIVED(uid:String):String = 
-    String.format("""[UID: %s] Shopify data received and tracking initiated.""", uid)
-  
+object Messages extends BaseMessages {
 }
 
 /**
