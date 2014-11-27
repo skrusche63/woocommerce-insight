@@ -66,36 +66,8 @@ class WooClient(val secret:String,val key:String, val url:String) {
   def getOrders():WooOrders = {
       
     try {
-      
-      var queryTarget = webTarget.path("orders")
-      if (url.contains("https")) {
-        null
-        
-      } else {
-
-        val millis = String.valueOf(System.currentTimeMillis())
-        val params = ArrayBuffer.empty[Pair]
-        /*
-         * We define the parameters as list to make sure that this
-         * ordering is also used when preparing the request url
-         */
-        params += Pair("oauth_consumer_key",key)
-        params += Pair("oauth_nonce",sha1(millis))
-
-        params += Pair("oauth_signature_method",ENC)
-        params += Pair("oauth_timestamp",time())
-
-        val signature = Pair("oauth_signature", generateOAuthSignature("orders","GET",params))
-        
-        queryTarget = queryTarget.queryParam(signature.key,signature.value)
-        for (param <- params) {
-         queryTarget = queryTarget.queryParam(param.key,param.value)
-        }
-        
-        val response = queryTarget.request(MediaType.APPLICATION_JSON_TYPE).method("GET", null, classOf[String])
-        println(response)
-        JSON_MAPPER.readValue(response, classOf[WooOrders])    
-   }
+      val response = getResponse("orders")
+      JSON_MAPPER.readValue(response, classOf[WooOrders])    
     
     } catch {
       case e:Exception => {
@@ -106,6 +78,55 @@ class WooClient(val secret:String,val key:String, val url:String) {
 
   }
 
+  def getProducts():WooProducts = {
+      
+    try {
+      val response = getResponse("products")
+      JSON_MAPPER.readValue(response, classOf[WooProducts])    
+    
+    } catch {
+      case e:Exception => {
+        println(e.getMessage())
+        throw new Exception("Could not process query",e)
+      }
+    }
+
+  }
+
+  private def getResponse(endpoint:String):String = {
+      
+    var queryTarget = webTarget.path(endpoint)
+    if (url.contains("https")) {
+      null
+        
+    } else {
+
+      val millis = String.valueOf(System.currentTimeMillis())
+      val params = ArrayBuffer.empty[Pair]
+      /*
+       * We define the parameters as list to make sure that this
+       * ordering is also used when preparing the request url
+       */
+      params += Pair("oauth_consumer_key",key)
+      params += Pair("oauth_nonce",sha1(millis))
+
+      params += Pair("oauth_signature_method",ENC)
+      params += Pair("oauth_timestamp",time())
+
+      val signature = Pair("oauth_signature", generateOAuthSignature(endpoint,"GET",params))
+        
+      queryTarget = queryTarget.queryParam(signature.key,signature.value)
+      for (param <- params) {
+        queryTarget = queryTarget.queryParam(param.key,param.value)
+      }
+        
+      val response = queryTarget.request(MediaType.APPLICATION_JSON_TYPE).method("GET", null, classOf[String])
+      response   
+    
+    }
+    
+  }
+  
   private def time():String = {
 	return String.valueOf(new java.util.Date().getTime()).substring(0, 10)
   }

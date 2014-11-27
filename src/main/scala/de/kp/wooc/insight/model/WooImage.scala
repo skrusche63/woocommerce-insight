@@ -1,4 +1,4 @@
-package de.kp.wooc.insight
+package de.kp.wooc.insight.model
 /* Copyright (c) 2014 Dr. Krusche & Partner PartG
  * 
  * This file is part of the WooCommerce-Insight project
@@ -18,25 +18,31 @@ package de.kp.wooc.insight
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.joda.time.format.DateTimeFormat
-import de.kp.spark.core.model._
+import org.codehaus.jackson.annotate.JsonProperty
+import com.fasterxml.jackson.annotation.{JsonIgnoreProperties, JsonIgnore}
 
-import de.kp.wooc.insight.model._
-
-class WooContext {
-
-  private val (secret,key,url) = Configuration.woocommerce
-  private val client = new WooClient(secret,key,url)
+@JsonIgnoreProperties(ignoreUnknown = true)
+case class WooImage (
   
-  /**
-   * This method is responsible for retrieving a set of orders representing
-   * a certain time period; in order to e.g. fill a transaction darabase for
-   * later data mining and predictive analytics, this method may be called
-   * multiple times (e.g. with the help of a scheduler)
-   */
-  def getOrders(req:ServiceRequest):List[Order] = {
-	  // TODO
-    null
-  }
-
-}
+  @JsonProperty("id")
+  id:Int,
+  
+  @JsonProperty("position")
+  position:Int,
+  
+  @JsonProperty("title")
+  title:String,
+  
+  @JsonProperty("src")
+  src:String,
+  
+  @JsonProperty("alt")
+  alt:String,
+  
+  @JsonProperty("created_at")
+  created_at:String,
+  
+  @JsonProperty("updated_at")
+  updated_at:String
+  
+)
