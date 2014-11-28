@@ -13,3 +13,5 @@ that brings the power of advanced predictions and recommendations to small and m
 
 **WooCommerce Insight** provides a bridge between WooCommerce and Predictiveworks. and makes it easy for WooCommerce users to apply 
 MarketBasket Analysis to their orders, compute Product Recommendations and more.
+
+![WooCommerce Insight](https://raw.github.com/skrusche63/woocommerce-insight/master/images/woocommerce_insight_640.png)
