@@ -22,9 +22,14 @@ import org.joda.time.format.DateTimeFormat
 import de.kp.spark.core.model._
 
 import de.kp.wooc.insight.model._
+import de.kp.wooc.insight.io.ItemBuilder
+
+import scala.collection.mutable.HashMap
 
 class WooContext {
 
+  private val site = Configuration.site
+  
   private val (secret,key,url) = Configuration.woocommerce
   private val client = new WooClient(secret,key,url)
   
@@ -35,10 +40,79 @@ class WooContext {
    * multiple times (e.g. with the help of a scheduler)
    */
   def getOrders(req:ServiceRequest):List[Order] = {
-	  // TODO
-    null
+    
+    val params = validateOrderParams(req.data)
+    val orders = client.getOrders(params).orders
+    
+    orders.map(order => {
+      
+      val items = ItemBuilder.build(site,order)
+      new Order(items)
+      
+    })
   }
   
   def getProduct(pid:Int) = client.getProduct(pid)
+
+  /**
+   * This method is used to format a certain timestamp, provided with 
+   * a request to collect data from a certain Shopify store
+   */
+  private def formatted(time:Long):String = {
+
+    //2008-12-31
+    val pattern = "yyyy-MM-dd"
+    val formatter = DateTimeFormat.forPattern(pattern)
+    
+    formatter.print(time)
+    
+  }
+
+  /**
+   * A helper method to transform the request parameters into validated params
+   */
+  private def validateOrderParams(params:Map[String,String]):Map[String,String] = {
+
+    val requestParams = HashMap.empty[String,String]
+    
+    if (params.contains("created_at_min")) {
+      /*
+       * Show orders created after date (format: 2008-12-31)
+       */
+      val time = params("created_at_min").toLong
+      requestParams += "created_at_min" -> formatted(time)
+      
+    }
+    
+    if (params.contains("created_at_max")) {
+      /*
+       * Show orders created before date (format: 2008-12-31)
+       */
+      val time = params("created_at_max").toLong
+      requestParams += "created_at_max" -> formatted(time)
+      
+    }
+    
+    if (params.contains("updated_at_min")) {
+      /*
+       * Show orders last updated after date (format: 2008-12-31)
+       */
+      val time = params("updated_at_min").toLong
+      requestParams += "updated_at_min" -> formatted(time)
+      
+    }
+    
+    if (params.contains("updated_at_max")) {
+      /*
+       * Show orders last updated before date (format: 2008-12-31)
+       */
+      val time = params("updated_at_max").toLong
+      requestParams += "updated_at_max" -> formatted(time)
+      
+    }
+    
+    requestParams.toMap
+  
+  }
 
 }

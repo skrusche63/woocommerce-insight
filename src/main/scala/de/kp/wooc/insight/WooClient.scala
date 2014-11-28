@@ -66,50 +66,50 @@ class WooClient(val secret:String,val key:String, val url:String) {
   def getCustomer(cid:Int):WooCustomer = {
             
     val endpoint = "customers/" + cid
-    getResponse(endpoint, classOf[WooCustomer])   
+    getResponse(endpoint, Map.empty[String,String], classOf[WooCustomer])   
     
   }
 
-  def getCustomers():WooCustomers = {
+  def getCustomers(requestParams:Map[String,String]):WooCustomers = {
  
     val endpoint = "customers"
-    getResponse(endpoint, classOf[WooCustomers])   
+    getResponse(endpoint, requestParams, classOf[WooCustomers])   
 
   }
 
   def getOrder(oid:Int):WooOrder = {
 
     val endpoint = "orders/" + oid
-    getResponse(endpoint, classOf[WooOrder])   
+    getResponse(endpoint, Map.empty[String,String], classOf[WooOrder])   
     
   }
 
-  def getOrders():WooOrders = {
+  def getOrders(requestParams:Map[String,String]):WooOrders = {
  
     val endpoint = "orders"
-    getResponse(endpoint, classOf[WooOrders])   
+    getResponse(endpoint, requestParams, classOf[WooOrders])   
 
   }
 
   def getProduct(oid:Int):WooProduct = {
             
     val endpoint = "products/" + oid
-    getResponse(endpoint, classOf[WooProduct])   
+    getResponse(endpoint, Map.empty[String,String], classOf[WooProduct])   
     
   }
 
-  def getProducts():WooProducts = {
+  def getProducts(requestParams:Map[String,String]):WooProducts = {
  
     val endpoint = "products"
-    getResponse(endpoint, classOf[WooProducts])   
+    getResponse(endpoint, requestParams, classOf[WooProducts])   
 
   }
 
-  private def getResponse[T](endpoint:String,clazz:Class[T]):T = {
+  private def getResponse[T](endpoint:String,requestParams:Map[String,String],clazz:Class[T]):T = {
       
     try {
     
-      val response = getResponse(endpoint)
+      val response = getResponse(endpoint,requestParams)
       JSON_MAPPER.readValue(response, clazz)  
     
     } catch {
@@ -121,7 +121,7 @@ class WooClient(val secret:String,val key:String, val url:String) {
   
   }
   
-  private def getResponse(endpoint:String):String = {
+  private def getResponse(endpoint:String,requestParams:Map[String,String]):String = {
       
     var queryTarget = webTarget.path(endpoint)
     if (url.contains("https")) {
@@ -131,20 +131,30 @@ class WooClient(val secret:String,val key:String, val url:String) {
 
       val millis = String.valueOf(System.currentTimeMillis())
       val params = ArrayBuffer.empty[Pair]
+
       /*
-       * We define the parameters as list to make sure that this
-       * ordering is also used when preparing the request url
+       * Add request specific parameters; actually a time filter
+       * is supported, e.g. 'created_at_max' and 'created_at_min'
        */
+      if (requestParams.isEmpty == false) {
+        requestParams.foreach(entry => params += Pair(entry._1,entry._2))      
+      }
+      
       params += Pair("oauth_consumer_key",key)
       params += Pair("oauth_nonce",sha1(millis))
 
       params += Pair("oauth_signature_method",ENC)
       params += Pair("oauth_timestamp",time())
 
-      val signature = Pair("oauth_signature", generateOAuthSignature(endpoint,"GET",params))
-        
+      /*
+       * We define the parameters as list to make sure that this
+       * ordering is also used when preparing the request url
+       */     
+      val sorted = params.sortBy(x => x.key)
+      val signature = Pair("oauth_signature", generateOAuthSignature(endpoint,"GET",sorted))
+     
       queryTarget = queryTarget.queryParam(signature.key,signature.value)
-      for (param <- params) {
+      for (param <- sorted) {
         queryTarget = queryTarget.queryParam(param.key,param.value)
       }
         

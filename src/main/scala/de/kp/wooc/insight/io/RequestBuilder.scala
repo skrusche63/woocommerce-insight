@@ -23,8 +23,8 @@ import de.kp.spark.core.model._
 import de.kp.wooc.insight.model._
 import scala.collection.mutable.{ArrayBuffer,HashMap}
 /**
- * The RequestBuilder is responsible for building tracking request
- * based on a specific predictive engine and respective shopify data
+ * The RequestBuilder is responsible for building tracking request based
+ * on a specific predictive engine and respective woocommerce data
  */
 class RequestBuilder {
 

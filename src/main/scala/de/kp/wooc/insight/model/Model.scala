@@ -84,10 +84,6 @@ case class OrderItem(
    */     
   currency:String = "USD",
   /*
-   * Price of the item 
-   */
-  price:String = "",
-  /*
    * SKU 
    */
   sku:String = ""

@@ -78,6 +78,15 @@ object Configuration {
     )
 
   }
+
+  def site():String = {
+  
+    val cfg = config.getConfig("site")
+    val site = cfg.getString("name")
+    
+    site
+    
+  }
   
   def woocommerce():(String,String,String) = {
   

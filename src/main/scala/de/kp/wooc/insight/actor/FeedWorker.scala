@@ -41,7 +41,7 @@ class FeedWorker(ctx:RemoteContext) extends WorkerActor(ctx) {
           
           case "order" => {
             /*
-             * Retrieve orders from a certain shopify store and
+             * Retrieve orders from a certain woocommerce store and
              * convert them into an internal format 
              */
             val orders = wtx.getOrders(req)
