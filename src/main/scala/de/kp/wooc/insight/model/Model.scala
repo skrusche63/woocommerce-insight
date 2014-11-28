@@ -97,6 +97,19 @@ case class OrderItem(
 case class Order(items:List[OrderItem])
 case class Orders(items:List[Order])
 
+/**
+ * A placement is a list of products that refers
+ * to the consequent part of an association rule
+ */
+case class Placement(products:List[WooProduct])
+
+case class Recommendation(
+  /* A recommendation is described on a per user basis */
+  site:String,user:String,products:List[WooProduct]
+)
+
+case class Recommendations(uid:String,items:List[Recommendation])
+
 case class Rule (
   antecedent:List[Int],consequent:List[Int],support:Int,confidence:Double)
 
@@ -121,7 +134,6 @@ object ResponseStatus extends BaseStatus
 object Serializer extends BaseSerializer {
 
   def serializeActorsStatus(statuses:ActorsStatus):String = write(statuses) 
-  def deserializeResponse(response:String):ServiceResponse = read[ServiceResponse](response)
   
   /** 
    * Multi user rules specify the result of association analysis and are used to 

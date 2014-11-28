@@ -63,26 +63,54 @@ class WooClient(val secret:String,val key:String, val url:String) {
   val client = ClientBuilder.newClient()
   val webTarget = client.target(uri).path("/")
 
-  def getOrders():WooOrders = {
-      
-    try {
-      val response = getResponse("orders")
-      JSON_MAPPER.readValue(response, classOf[WooOrders])    
+  def getCustomer(cid:Int):WooCustomer = {
+            
+    val endpoint = "customers/" + cid
+    getResponse(endpoint, classOf[WooCustomer])   
     
-    } catch {
-      case e:Exception => {
-        println(e.getMessage())
-        throw new Exception("Could not process query",e)
-      }
-    }
+  }
 
+  def getCustomers():WooCustomers = {
+ 
+    val endpoint = "customers"
+    getResponse(endpoint, classOf[WooCustomers])   
+
+  }
+
+  def getOrder(oid:Int):WooOrder = {
+
+    val endpoint = "orders/" + oid
+    getResponse(endpoint, classOf[WooOrder])   
+    
+  }
+
+  def getOrders():WooOrders = {
+ 
+    val endpoint = "orders"
+    getResponse(endpoint, classOf[WooOrders])   
+
+  }
+
+  def getProduct(oid:Int):WooProduct = {
+            
+    val endpoint = "products/" + oid
+    getResponse(endpoint, classOf[WooProduct])   
+    
   }
 
   def getProducts():WooProducts = {
+ 
+    val endpoint = "products"
+    getResponse(endpoint, classOf[WooProducts])   
+
+  }
+
+  private def getResponse[T](endpoint:String,clazz:Class[T]):T = {
       
     try {
-      val response = getResponse("products")
-      JSON_MAPPER.readValue(response, classOf[WooProducts])    
+    
+      val response = getResponse(endpoint)
+      JSON_MAPPER.readValue(response, clazz)  
     
     } catch {
       case e:Exception => {
@@ -90,9 +118,9 @@ class WooClient(val secret:String,val key:String, val url:String) {
         throw new Exception("Could not process query",e)
       }
     }
-
+  
   }
-
+  
   private def getResponse(endpoint:String):String = {
       
     var queryTarget = webTarget.path(endpoint)

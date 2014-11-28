@@ -1,4 +1,4 @@
-package de.kp.wooc.insight
+package de.kp.wooc.insight.rest
 /* Copyright (c) 2014 Dr. Krusche & Partner PartG
  * 
  * This file is part of the WooCommerce-Insight project
@@ -18,27 +18,25 @@ package de.kp.wooc.insight
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.joda.time.format.DateTimeFormat
-import de.kp.spark.core.model._
+import akka.actor.ActorSystem
 
-import de.kp.wooc.insight.model._
+import de.kp.spark.core.SparkService
+import de.kp.wooc.insight.{Configuration}
 
-class WooContext {
-
-  private val (secret,key,url) = Configuration.woocommerce
-  private val client = new WooClient(secret,key,url)
+object RestServer extends SparkService {
   
-  /**
-   * This method is responsible for retrieving a set of orders representing
-   * a certain time period; in order to e.g. fill a transaction darabase for
-   * later data mining and predictive analytics, this method may be called
-   * multiple times (e.g. with the help of a scheduler)
-   */
-  def getOrders(req:ServiceRequest):List[Order] = {
-	  // TODO
-    null
+  /* Create Spark context */
+  private val sc = createCtxLocal("WooContext",Configuration.spark)      
+  
+  private def start(args:Array[String],system:ActorSystem) {
+
+    val (host,port) = Configuration.rest
+    new RestApi(host,port,system,sc).start()
+      
   }
   
-  def getProduct(pid:Int) = client.getProduct(pid)
-
+  def main(args: Array[String]) {
+    start(args, ActorSystem("WooServer"))
+  }
+  
 }

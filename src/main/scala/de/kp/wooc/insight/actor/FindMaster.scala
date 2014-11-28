@@ -1,4 +1,4 @@
-package de.kp.wooc.insight
+package de.kp.wooc.insight.actor
 /* Copyright (c) 2014 Dr. Krusche & Partner PartG
  * 
  * This file is part of the WooCommerce-Insight project
@@ -18,27 +18,11 @@ package de.kp.wooc.insight
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.joda.time.format.DateTimeFormat
-import de.kp.spark.core.model._
+import akka.actor.Props
+import akka.routing.RoundRobinRouter
 
-import de.kp.wooc.insight.model._
+class FindMaster(name:String) extends MasterActor(name) {
 
-class WooContext {
-
-  private val (secret,key,url) = Configuration.woocommerce
-  private val client = new WooClient(secret,key,url)
+  override val router = context.actorOf(Props(new FindWorker(ctx)).withRouter(RoundRobinRouter(workers)))
   
-  /**
-   * This method is responsible for retrieving a set of orders representing
-   * a certain time period; in order to e.g. fill a transaction darabase for
-   * later data mining and predictive analytics, this method may be called
-   * multiple times (e.g. with the help of a scheduler)
-   */
-  def getOrders(req:ServiceRequest):List[Order] = {
-	  // TODO
-    null
-  }
-  
-  def getProduct(pid:Int) = client.getProduct(pid)
-
 }
