@@ -15,3 +15,7 @@ that brings the power of advanced predictions and recommendations to small and m
 MarketBasket Analysis to their orders, compute Product Recommendations and more.
 
 ![WooCommerce Insight](https://raw.github.com/skrusche63/woocommerce-insight/master/images/woocommerce_insight_640.png)
+
+
+
+**WooCommerceInsight** is now part of [CustomerML](http://customerml.com)
